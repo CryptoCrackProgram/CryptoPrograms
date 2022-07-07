@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+<link rel=stylesheet type=text/css href=../support/cryptoPrograms.css>
+<meta charset=UTF-8>
+<meta name=description content="Solve ciphers">
+<meta name=keywords content="Cadenus Cipher">
+<meta name=author content="© Phil Pilcrow 2022">
+<meta name=viewport content="width=device-width, initial-scale=1.0">
+<title>CryptoPrograms-Cadenus</title>
+</head>
+<body>
+<form name=cadenusForm>
+<script src=cadenus.js></script>
+<script src=../support/decipherSetupLib.js></script>
+<script src=../support/cryptoPrograms.js async></script>
+<script>"use strict";var running;var maxSol;var maxKeysTested;var barID,barWidth;var workers=[];var solutions=[];var completedTrials=[];var t0,t1;function startWorker(){var b;if(document.getElementById("cipherInput").value===""){return}if(cleanInput(document.getElementById("cipherInput").value,0).length%25!==0){document.getElementById("result").innerHTML="Error: Cipher length must be divisible by 25.";window.alert("Error: Cipher length must be divisible by 25.");return}if(typeof(Worker)!=="undefined"){if(typeof(c)==="undefined"){t0=performance.now();document.getElementById("result").textContent="";maxSol=parseInt(document.getElementById("numSols").value);initSolutionFour();var a=parseInt(document.getElementById("workerCount").value);if(cleanInput(document.getElementById("cipherInput").value,0).length%25<6){a=1}else{a=parseInt(document.getElementById("workerCount").value)}var c;running=0;for(b=0;b<a;b+=1){c=initWorker("cadenus.js");workers[b]=c;completedTrials[b]=0;sendSolveTask(c,b,a);running+=1}setRunningState(true)}}else{document.getElementById("result").innerHTML="Sorry, your browser does not support Web Workers.";alert("Sorry, your browser does not support Web Workers.")}}function sendSolveTask(d,b,c){var a=[];a[0]=cleanInput(document.getElementById("cipherInput").value,0);a[1]=uInt8Array;a[2]=c;a[3]=b;a[4]=parseInt(document.getElementById("numSols").value);a[5]=convertToLetters(document.getElementById("keywdID").value);document.getElementById("animBar").style.display="block";document.getElementById("progressBars").style.visibility="visible";d.postMessage({cipher:a[0],uInt8Array:a[1],totalWorkers:a[2],workerNumber:a[3],numSols:a[4],keyword:a[5]})}function initWorker(b){var a=new Worker(b);a.addEventListener("message",messageHandler,true);a.addEventListener("error",errorHandler,true);return a}function stopTasks(){var a;for(a=0;a<workers.length;a+=1){workers[a].terminate()}setRunningState(false);t1=performance.now();document.getElementById("result").textContent=document.getElementById("result").textContent+"\nTotal running time: "+parseInt(t1-t0)/1000+" seconds.";document.getElementById("result").scrollTop=0;document.getElementById("progressBars").style.visibility="hidden"}function messageHandler(d){var a;var c=d.data;var b=0;switch(c.cmd){case"progress":completedTrials[c.worker]=c.trials;for(a=0;a<c.totalWorkers;a+=1){b+=completedTrials[a]}barWidth=Math.floor((b/maxKeysTested)*100);break;case"reslt":showSolution(c.key,c.score,c.text);break;case"STOP":running-=1;if(running===0){stopTasks();clearInterval(barID);setRunningState(false)}break}}function showSolution(b,e,d){maxSol=parseInt(document.getElementById("numSols").value);if(e>solutions[maxSol-1][0]){solutions[maxSol][0]=e;solutions[maxSol][1]=d;solutions[maxSol][2]=b;solutions.sort(sortFunction);var a="";var c;for(c=0;c<(maxSol-1);c+=1){if(solutions[c+1][0]>0){if(solutions[c][2]===solutions[c+1][2]&&solutions[c][1]===solutions[c+1][1]){solutions.splice(c+1,1);solutions.push([0,"",""])}}}for(c=0;c<maxSol;c+=1){if(solutions[c][0]>0){a+=(c+1)+"\xa0\xa0"+solutions[c][0].toString()+"\xa0-\xa0"+solutions[c][2]+":\xa0"+solutions[c][1]+"\n"}}t1=performance.now();a+="Time taken: "+parseInt(t1-t0)/1000+" seconds.";document.getElementById("result").textContent=a;document.getElementById("result").scrollTop=0}}function setRunningState(a){document.getElementById("startSolving").disabled=a;document.getElementById("stopSolving").disabled=!a}function errorHandler(a){alert("Error: "+a.message)}</script>
+<div>
+<p style=clear:both>Select language: <select id=langID onchange=readDatafile() title="Select plain text language"></select>
+<label style=margin-left:3em for=workerCount>Number of threads to use: </label>
+<select id=workerCount title="Selecting a greater number may increase solving speed">
+</select>
+</p>
+</div>
+<p style=margin-left:5em;margin-top:-1em><input type=text id=warning value="No language data file loaded" name=warn size=40 readonly></p>
+<div id=input>
+<p>Enter cipher text to be deciphered:</p>
+<textarea rows=5 class=input id=cipherInput name=userText placeholder="Enter your cipher text here..." required=required title="Enter letters (A-Z) only"></textarea>
+</div>
+<p>Enter keyword: <input type=text id=keywdID name=keyName maxlength=50 size=20></p>
+<p style=margin-top:-1em>(if known)</p><br>
+<div id=startStop>
+<p><input type=button id=startSolving value="Solve Cipher" onclick=startWorker()>
+<input type=button disabled id=stopSolving value="Stop Solving" onclick=stopTasks()></p>
+</div>
+<div id=progressBars style=visibility:hidden>
+<p>Searching</p>
+<div class="progress-bar green stripes" id=animBar style=display:none>
+<span style=width:100%></span>
+</div>
+</div>
+<div id=output>
+<p>Best solution:</p>
+<textarea id=result rows=12 name=solution readonly></textarea>
+</div>
+<p>Enter maximum number of best solutions to display: <input style=width:3em id=numSols type=number min=5 max=100 step=5 value=10 title="Maximum solutions is 100"/></p>
+</form>
+<script>readLangMenu();readWorkersMenu();readDatafile();</script>
+</body>
+</html>
