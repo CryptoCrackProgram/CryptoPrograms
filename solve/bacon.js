@@ -1,7 +1,217 @@
-var plain,solutions=[],cipher,keyword,numSols,uInt8Array,workerNumber,totalWorkers,isRunning,cipherLength,alphabetMask=[];function decipherBacon(){"function"===typeof importScripts&&(importScripts("decipherLib.js"),importScripts("cryptoPrograms.js"));initSolution();createMasks();cipherLength=cipher.length;"undefined"!==typeof keyword&&(0<keyword.length?solveWithKeyword():solveBacon());!1===isRunning&&self.postMessage({cmd:"STOP",msg:""})}
-function solveBacon(){var a,c=ord("A"),d=ord("Z");var b=Math.floor(67108864/totalWorkers)*workerNumber;var f=Math.floor(67108864/totalWorkers)*(workerNumber+1);b=0;b=1<totalWorkers?workerNumber:0;for(isRunning=!0;b<f;b+=totalWorkers){var e=numberOfSetBits(b);if(6<e&&19>e){if(keyIsValid(b)&&testKey(b)){e=getTetraScore(plain);var g="";for(a=c;a<=d;a+=1)g=0<(b&alphabetMask[a])?g+"B":g+"A";solutions[numSols-1]<e&&(solutions[numSols-1]=e,solutions.sort(function(h,k){return k-h}),self.postMessage({cmd:"reslt",
-key:g,score:e,text:plain}))}self.postMessage({cmd:"progress",worker:workerNumber,trials:b,totalWorkers:totalWorkers})}}isRunning=!1}function keyIsValid(a){var c=0;var d=!0;do{var b=cipher.charAt(c);c+=1;var f=cipher.charAt(c);c+=1;0<(a&alphabetMask[b])&&0<(a&alphabetMask[f])&&(d=!1)}while(!0===d&&c<cipherLength);return d}
-function testKey(a){var c,d,b,f,e=ord("a"),g=ord("z");plain="";var h=!0;for(c=f=0;c<cipherLength;c+=5){for(d=b=0;5>d;d+=1){var k=ord(cipher.charAt(f));f+=1;b<<=1;0<(a&alphabetMask[k])&&(b+=1)}b=b+e+(8<b)+(19<b);b>g&&(b="?",h=!1);plain+=chr(b)}return h}function numberOfSetBits(a){a-=a>>1&1431655765;a=(a&858993459)+(a>>2&858993459);return 16843009*(a+(a>>4)&252645135)>>24}
-function createMasks(){alphabetMask[90]=1;alphabetMask[89]=2;alphabetMask[88]=4;alphabetMask[87]=8;alphabetMask[86]=16;alphabetMask[85]=32;alphabetMask[84]=64;alphabetMask[83]=128;alphabetMask[82]=256;alphabetMask[81]=512;alphabetMask[80]=1024;alphabetMask[79]=2048;alphabetMask[78]=4096;alphabetMask[77]=8192;alphabetMask[76]=16384;alphabetMask[75]=32768;alphabetMask[74]=65536;alphabetMask[73]=131072;alphabetMask[72]=262144;alphabetMask[71]=524288;alphabetMask[70]=1048576;alphabetMask[69]=2097152;
-alphabetMask[68]=4194304;alphabetMask[67]=8388608;alphabetMask[66]=16777216;alphabetMask[65]=33554432}function solveWithKeyword(){var a=keyword.replace(/[A]/gi,"0");a=a.replace(/[B]/gi,"1");a=parseInt(a,2);keyIsValid(a)?testKey(a)&&(a=getTetraScore(plain),self.postMessage({cmd:"reslt",key:keyword,score:a,text:plain.toLowerCase()})):self.postMessage({cmd:"reslt",key:"",score:0,text:"Key not valid!"});isRunning=!1}
-self.addEventListener("message",function(a){a=a.data;cipher=a.cipher;uInt8Array=a.uInt8Array;totalWorkers=a.totalWorkers;workerNumber=a.workerNumber;numSols=a.numSols;keyword=a.keyword;decipherBacon()},!1);
+"use strict";
+var plain;
+var solutions = [];
+var cipher;
+var keyword;
+var numSols;
+var uInt8Array;
+var workerNumber;
+var totalWorkers;
+var isRunning;
+var cipherLength;
+var alphabetMask = [];
+
+function decipherBacon() {
+  if ('function' === typeof importScripts) {
+    // importScripts("decipherLib.js");
+    // importScripts("cryptoPrograms.js");
+    importScripts("../support/decipherLib.js");
+    importScripts("../support/cryptoPrograms.js");
+  }
+  initSolution();
+  createMasks();
+  cipherLength = cipher.length;
+  if (typeof keyword !== 'undefined') {
+    if (keyword.length > 0) {
+      solveWithKeyword();
+    } else {
+      solveBacon();
+    }
+  }
+  if (isRunning === false) {
+    self.postMessage({'cmd': 'STOP', 'msg': ''});
+  }
+}
+
+function solveBacon() {
+  var score;
+  var keyStart;
+  var keyEnd;
+  var keyTrial;
+  var key;
+  var posn;
+  var numberOfBitsSet;
+  var ascA=ord('A');
+  var ascZ=ord('Z');
+
+  keyStart = Math.floor(0x4000000 / totalWorkers) * workerNumber;
+  keyEnd = Math.floor(0x4000000 / totalWorkers) * (workerNumber + 1);
+  keyTrial = 0;
+  if (totalWorkers > 1) {
+    keyStart = workerNumber;
+  } else {
+    keyStart = 0;
+  }
+  isRunning = true;
+  for (keyTrial = keyStart; keyTrial < keyEnd; keyTrial += totalWorkers) {
+    numberOfBitsSet = numberOfSetBits(keyTrial);
+    // Assume key contains between 6 and 19 chars representing A and B
+    if (numberOfBitsSet > 6 && numberOfBitsSet < 19) {
+      if (keyIsValid(keyTrial)) {
+        if (testKey(keyTrial)) {
+          score = getTetraScore(plain);
+          key = "";
+          for (posn = ascA; posn <= ascZ; posn += 1) {
+            if ((keyTrial & alphabetMask[posn]) > 0) {
+              key += 'B';
+            } else {
+              key += 'A';
+            }
+          }
+
+          if (solutions[numSols-1] < score) {
+            solutions[numSols-1] = score;
+            solutions.sort(function(a, b){return b - a;});
+            self.postMessage({'cmd': 'reslt',
+                      'key': key,
+                      'score': score,
+                      'text': plain});
+          }
+        }
+      }
+      self.postMessage({'cmd': 'progress',
+                'worker': workerNumber,
+                'trials': keyTrial,
+                'totalWorkers': totalWorkers
+                });
+    }
+  }
+  isRunning = false;
+}
+
+function keyIsValid(key) {
+  // Five letter group can't start with 'bb...'
+  var ptr;
+  var isValid;
+  var ch1, ch2;
+
+  ptr = 0;
+  isValid = true;
+  do {
+    ch1 = cipher.charAt(ptr);
+    ptr += 1;
+    ch2 = cipher.charAt(ptr);
+    ptr += 1;
+    if (((key & alphabetMask[ch1]) > 0) && (key & alphabetMask[ch2]) > 0) {
+      isValid = false;
+    }
+  } while ((isValid === true) && (ptr < (cipherLength)) );
+  return (isValid);
+}
+
+function testKey(key) {
+  var posn;
+  var group;
+  var ch;
+  var bitGroup;
+  var ciphPtr;
+  var textIsValid;
+  var asca=ord('a');
+  var ascz=ord('z');
+
+  plain = "";
+  textIsValid = true;
+  ciphPtr = 0;
+  for (posn = 0; posn < cipherLength; posn += 5) {
+    bitGroup = 0;
+    for (group = 0; group < 5; group += 1) {
+      ch = ord(cipher.charAt(ciphPtr));
+      ciphPtr += 1;
+      bitGroup = bitGroup << 1;
+      if ((key & alphabetMask[ch]) > 0) {
+        bitGroup += 1;
+      }
+    }
+
+    // Convert bits to letter. A=00000, B=00001, C=00010, ...)
+    // Allow for I/J and U/V combined
+    bitGroup = bitGroup + asca + (bitGroup > 8) + (bitGroup > 19);
+    if ( bitGroup > ascz ) {
+      bitGroup = '?';
+      textIsValid = false;
+    }
+    plain += chr(bitGroup);
+  }
+  return (textIsValid);
+}
+
+function numberOfSetBits(n) {
+    n = n - ((n >> 1) & 0x55555555);
+    n = (n & 0x33333333) + ((n >> 2) & 0x33333333);
+    return ((n + (n >> 4) & 0xF0F0F0F) * 0x1010101) >> 24;
+}
+
+function createMasks() {
+  alphabetMask[90] = 0x1; // Z
+  alphabetMask[89] = 0x2; // Y
+  alphabetMask[88] = 0x4; // X
+  alphabetMask[87] = 0x8; // W
+  alphabetMask[86] = 0x10; // V
+  alphabetMask[85] = 0x20; // U
+  alphabetMask[84] = 0x40; // T
+  alphabetMask[83] = 0x80; // S
+  alphabetMask[82] = 0x100; // R
+  alphabetMask[81] = 0x200; // Q
+  alphabetMask[80] = 0x400; // P
+  alphabetMask[79] = 0x800; // O
+  alphabetMask[78] = 0x1000; // N
+  alphabetMask[77] = 0x2000; // M
+  alphabetMask[76] = 0x4000; // L
+  alphabetMask[75] = 0x8000; // K
+  alphabetMask[74] = 0x10000; // J
+  alphabetMask[73] = 0x20000; // I
+  alphabetMask[72] = 0x40000; // H
+  alphabetMask[71] = 0x80000; // G
+  alphabetMask[70] = 0x100000; // F
+  alphabetMask[69] = 0x200000; // E
+  alphabetMask[68] = 0x400000; // D
+  alphabetMask[67] = 0x800000; // C
+  alphabetMask[66] = 0x1000000; // B
+  alphabetMask[65] = 0x2000000; // A
+}
+
+function solveWithKeyword() {
+  var key;
+  var score;
+  var keyTrial;
+
+  key = keyword.replace(/[A]/gi, '0');
+  key = key.replace(/[B]/gi, '1');
+  keyTrial = parseInt(key, 2);
+  if (keyIsValid(keyTrial)) {
+    if (testKey(keyTrial)) {
+      score = getTetraScore(plain);
+      self.postMessage({'cmd': 'reslt',
+                'key': keyword,
+                'score': score,
+                'text': plain.toLowerCase()});
+    }
+  } else {
+    self.postMessage({'cmd': 'reslt',
+              'key': '',
+              'score': 0,
+              'text': 'Key not valid!'});
+  }
+  isRunning = false;
+}
+
+self.addEventListener('message', function(e) {
+  var data = e.data;
+  cipher = data.cipher;
+  uInt8Array = data.uInt8Array;
+  totalWorkers = data.totalWorkers;
+  workerNumber = data.workerNumber;
+  numSols = data.numSols;
+  keyword = data.keyword;
+  decipherBacon();
+}, false);
