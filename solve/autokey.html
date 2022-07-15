@@ -11,24 +11,23 @@
 </head>
 <body>
 <form name=autokeyForm>
+<h1>Autokey Cipher</h1>
 <script src=autokey.js></script>
 <script src=../support/decipherSetupLib.js></script>
 <script src=../support/cryptoPrograms.js async></script>
 <script>"use strict";var running;var maxSol;var maxKeysTested;var barID,barWidth;var workers=[];var solutions=[];var completedTrials=[];var t0,t1;function startWorker(){var b;if(document.getElementById("cipherInput").value===""){return}if(typeof(Worker)!=="undefined"){if(typeof(c)==="undefined"){t0=performance.now();document.getElementById("result").textContent="";maxSol=parseInt(document.getElementById("numSols").value);initSolution();var a=parseInt(document.getElementById("workerCount").value);var c;updateProgressBar();running=0;for(b=0;b<a;b+=1){c=initWorker("autokey.js");workers[b]=c;completedTrials[b]=0;sendSolveTask(c,b,a);running+=1}setRunningState(true)}}else{document.getElementById("result").innerHTML="Sorry, your browser does not support Web Workers.";alert("Sorry, your browser does not support Web Workers.")}}function sendSolveTask(d,b,c){var a=[];a[0]=cleanInput(document.getElementById("cipherInput").value,0);a[1]=uInt8Array;a[2]=c;a[3]=b;a[4]=parseInt(document.getElementById("numSols").value);a[5]=convertToLetters(document.getElementById("keywdID").value);a[6]=Number(getRadioVal(document.forms.autokeyForm,"ciphTyp"));if(a[6]===3){maxKeysTested=Math.pow(13,4)}else{maxKeysTested=Math.pow(26,4)}document.getElementById("progress").style.display="block";document.getElementById("animBar").style.display="none";document.getElementById("progressBars").style.visibility="visible";d.postMessage({cipher:a[0],uInt8Array:a[1],totalWorkers:a[2],workerNumber:a[3],numSols:a[4],keyword:a[5],cType:a[6]})}function initWorker(b){var a=new Worker(b);a.addEventListener("message",messageHandler,true);a.addEventListener("error",errorHandler,true);return a}function stopTasks(){var a;for(a=0;a<workers.length;a+=1){workers[a].terminate()}setRunningState(false);t1=performance.now();document.getElementById("result").textContent=document.getElementById("result").textContent+"\nTotal running time: "+parseInt(t1-t0)/1000+" seconds.";document.getElementById("result").scrollTop=0;if(document.getElementById("animBar").style.display==="block"){document.getElementById("progressBars").style.visibility="hidden"}}function messageHandler(d){var a;var c=d.data;var b=0;switch(c.cmd){case"progress":completedTrials[c.worker]=c.trials;for(a=0;a<c.totalWorkers;a+=1){b+=completedTrials[a]}barWidth=Math.floor((b/maxKeysTested)*100);break;case"reslt":showSolution(c.key,c.score,c.text);break;case"STOP":running-=1;if(running===0){stopTasks();clearInterval(barID);setRunningState(false)}break}}function showSolution(b,e,d){maxSol=parseInt(document.getElementById("numSols").value);if(e>solutions[maxSol-1][0]){solutions[maxSol][0]=e;solutions[maxSol][1]=d;solutions[maxSol][2]=b;solutions.sort(sortFunction);var a="";var c;for(c=0;c<(maxSol-1);c+=1){if(solutions[c+1][0]>0){if(solutions[c][2]===solutions[c+1][2]&&solutions[c][1]===solutions[c+1][1]){solutions.splice(c+1,1);solutions.push([0,"",""])}}}for(c=0;c<maxSol;c+=1){if(solutions[c][0]>0){a+=(c+1)+"\xa0\xa0"+solutions[c][0].toString()+"\xa0-\xa0"+solutions[c][2]+":\xa0"+solutions[c][1]+"\n"}}t1=performance.now();a+="Time taken: "+parseInt(t1-t0)/1000+" seconds.";document.getElementById("result").textContent=a;document.getElementById("result").scrollTop=0}}function setRunningState(a){document.getElementById("startSolving").disabled=a;document.getElementById("stopSolving").disabled=!a}function updateProgressBar(){var a=document.getElementById("bar");barWidth=0;barID=setInterval(b,10);function b(){if(barWidth>95){a.style.width=100+"%";document.getElementById("progLabel").innerHTML="100%";if(barID){clearInterval(barID)}}else{a.style.width=barWidth+"%";document.getElementById("progLabel").innerHTML=parseInt(barWidth)+"%"}}}function errorHandler(a){alert("Error: "+a.message)}</script>
 <div>
-<p style=clear:both>Select language: <select id=langID onchange=readDatafile() title="Select plain text language"></select>
-<label style=margin-left:3em for=workerCount>Number of threads to use: </label>
+<p style=clear:both;margin-right:1em>Select language: <select id=langID onchange=readDatafile() title="Select plain text language"></select>
+<p><label for=workerCount>Number of threads to use:
 <select id=workerCount title="Selecting a greater number may increase solving speed">
-</select>
-</p>
+</select></label></p><br>
+<p><input style=pointer-events:none type=text id=warning value="No language data file loaded" name=warn size=30 readonly></p>
 </div>
-<p style=margin-left:5em;margin-top:-1em><input type=text id=warning value="No language data file loaded" name=warn size=40 readonly></p>
 <div id=ciphType>
-<p>Type:
-<input style=margin-left:1em id=showVig type=radio name=ciphTyp value=0 checked><label for=showVig>Vigenère</label>
-<input style=margin-left:1em id=showBeau type=radio name=ciphTyp value=1><label for=showBeau>Beaufort</label>
-<input style=margin-left:1em id=showVar type=radio name=ciphTyp value=2><label for=showVar>Variant</label>
-<input style=margin-left:1em id=showPorta type=radio name=ciphTyp value=3><label for=showPorta>Porta</label></p>
+<span class=no-wrap><input style=margin-left:1em id=showVig type=radio name=ciphTyp value=0 checked><label for=showVig>Vigenère</label></span>
+<span class=no-wrap><input style=margin-left:1em id=showBeau type=radio name=ciphTyp value=1><label for=showBeau>Beaufort</label></span>
+<span class=no-wrap><input style=margin-left:1em id=showVar type=radio name=ciphTyp value=2><label for=showVar>Variant</label></span>
+<span class=no-wrap><input style=margin-left:1em id=showPorta type=radio name=ciphTyp value=3><label for=showPorta>Porta</label></span>
 </div>
 <div id=input>
 <p>Enter cipher text to be deciphered:</p>
@@ -53,9 +52,9 @@
 </div>
 <div id=output>
 <p>Best solution:</p>
-<textarea id=result rows=12 name=solution readonly></textarea>
+<textarea id=result rows=6 name=solution readonly></textarea>
 </div>
-<p>Enter maximum number of best solutions to display: <input style=width:3em id=numSols type=number min=5 max=100 step=5 value=10 title="Maximum solutions is 100"/></p>
+<label for=numSols>Maximum number of best solutions to display:</label> <input type=number style=width:3em id=numSols min=5 max=100 step=5 value=5 title="Maximum solutions is 100">
 </form>
 <script>readLangMenu();readWorkersMenu();readDatafile();</script>
 </body>

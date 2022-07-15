@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang=en>
 <head>
-<link rel=stylesheet type=text/css href=../support/cryptoPrograms.css>
+<link rel=stylesheet href=cryptoPrograms.css>
 <meta charset=UTF-8>
 <meta name=description content="Solve ciphers">
 <meta name=keywords content="Bacon Ciphers">
@@ -11,18 +11,17 @@
 </head>
 <body>
 <form name=baconForm>
-<script src=bacon.js></script>
+<h1>Bacon Cipher</h1>
 <script src=../support/decipherSetupLib.js></script>
 <script src=../support/cryptoPrograms.js async></script>
-<script>"use strict";var worker,running;var maxSol;var maxKeysTested;var barID,barWidth;var workers=[];var solutions=[];var completedTrials=[];var t0,t1;function startWorker(){var c;if(document.getElementById("cipherInput").value===""){return}if(typeof(Worker)!=="undefined"){if(typeof(d)==="undefined"){t0=performance.now();document.getElementById("result").textContent="";maxSol=parseInt(document.getElementById("numSols").value);initSolution();var b=parseInt(document.getElementById("workerCount").value);var a=10;var d;if(cleanInput(document.getElementById("keywdID").value,0).length>0){b=1}running=0;for(c=0;c<b;c+=1){d=initWorker("bacon.js");workers[c]=d;completedTrials[c]=0;sendSolveTask(d,c,b);running+=1}setRunningState(true)}}else{document.getElementById("result").innerHTML="Sorry, your browser does not support Web Workers.";Alert("Sorry, your browser does not support Web Workers.")}}function sendSolveTask(d,b,c){var a=[];a[0]=cleanInput(document.getElementById("cipherInput").value,0);a[1]=uInt8Array;a[2]=c;a[3]=b;a[4]=parseInt(document.getElementById("numSols").value);a[5]=cleanInput(document.getElementById("keywdID").value,0);document.getElementById("animBar").style.display="block";document.getElementById("progressBars").style.visibility="visible";d.postMessage({cipher:a[0],uInt8Array:a[1],totalWorkers:a[2],workerNumber:a[3],numSols:a[4],keyword:a[5]})}function initWorker(a){worker=new Worker(a);worker.addEventListener("message",messageHandler,true);return worker}function stopTasks(){var a;for(a=0;a<workers.length;a+=1){workers[a].terminate()}setRunningState(false);t1=performance.now();document.getElementById("result").textContent=document.getElementById("result").textContent+"\nTotal running time: "+parseInt(t1-t0)/1000+" seconds.";document.getElementById("result").scrollTop=0;document.getElementById("progressBars").style.visibility="hidden"}function messageHandler(b){var a=b.data;switch(a.cmd){case"reslt":showSolution(a.key,a.score,a.text);break;case"STOP":running-=1;if(running===0){stopTasks();clearInterval(barID);setRunningState(false)}break}}function showSolution(b,e,d){var c;maxSol=parseInt(document.getElementById("numSols").value);if(e>solutions[maxSol-1][0]){solutions[maxSol][0]=e;solutions[maxSol][1]=d;solutions[maxSol][2]=b;solutions.sort(sortFunction);var a="";for(c=0;c<maxSol;c+=1){if(solutions[c][0]>0){a+=(c+1)+"\xa0\xa0"+solutions[c][0].toString()+"\xa0-\xa0"+solutions[c][2]+":\xa0"+solutions[c][1]+"\n"}}t1=performance.now();a+="Time taken: "+parseInt(t1-t0)/1000+" seconds.";document.getElementById("result").textContent=a;document.getElementById("result").scrollTop=0}}function setRunningState(a){document.getElementById("startSolving").disabled=a;document.getElementById("stopSolving").disabled=!a}function errorHandler(a){alert("Error: "+a.message)}</script>
+<script>"use strict";var worker,running;var maxSol;var maxKeysTested;var barID,barWidth;var workers=[];var solutions=[];var completedTrials=[];var t0,t1;function startWorker(){var c;if(document.getElementById("cipherInput").value===""){return}if(typeof(Worker)!=="undefined"){if(typeof(d)==="undefined"){t0=performance.now();document.getElementById("result").textContent="";maxSol=parseInt(document.getElementById("numSols").value);initSolution();var b=parseInt(document.getElementById("workerCount").value);var a=10;var d;updateProgressBar();if(cleanInput(document.getElementById("keywdID").value,0).length>0){b=1}running=0;for(c=0;c<b;c+=1){d=initWorker("bacon.js");workers[c]=d;completedTrials[c]=0;sendSolveTask(d,c,b);running+=1}setRunningState(true)}}else{document.getElementById("result").innerHTML="Sorry, your browser does not support Web Workers.";Alert("Sorry, your browser does not support Web Workers.")}}function sendSolveTask(d,b,c){var a=[];a[0]=cleanInput(document.getElementById("cipherInput").value,0);a[1]=uInt8Array;a[2]=c;a[3]=b;a[4]=parseInt(document.getElementById("numSols").value);a[5]=cleanInput(document.getElementById("keywdID").value,0);maxKeysTested=Math.pow(2,26);document.getElementById("progress").style.display="block";document.getElementById("animBar").style.display="none";document.getElementById("progressBars").style.visibility="visible";d.postMessage({cipher:a[0],uInt8Array:a[1],totalWorkers:a[2],workerNumber:a[3],numSols:a[4],keyword:a[5]})}function initWorker(a){worker=new Worker(a);worker.addEventListener("message",messageHandler,true);return worker}function stopTasks(){var a;for(a=0;a<workers.length;a+=1){workers[a].terminate()}setRunningState(false);t1=performance.now();document.getElementById("result").textContent=document.getElementById("result").textContent+"\nTotal running time: "+parseInt(t1-t0)/1000+" seconds.";document.getElementById("result").scrollTop=0;document.getElementById("progressBars").style.visibility="hidden"}function messageHandler(d){var a;var b=0;var c=d.data;switch(c.cmd){case"progress":completedTrials[c.worker]=c.trials;for(a=0;a<c.totalWorkers;a+=1){b+=completedTrials[a]}barWidth=Math.floor((b/maxKeysTested)*100);break;case"reslt":showSolution(c.key,c.score,c.text);break;case"STOP":running-=1;if(running===0){stopTasks();clearInterval(barID);setRunningState(false)}break}}function showSolution(b,e,d){var c;maxSol=parseInt(document.getElementById("numSols").value);if(e>solutions[maxSol-1][0]){solutions[maxSol][0]=e;solutions[maxSol][1]=d;solutions[maxSol][2]=b;solutions.sort(sortFunction);var a="";for(c=0;c<maxSol;c+=1){if(solutions[c][0]>0){a+=(c+1)+"\xa0\xa0"+solutions[c][0].toString()+"\xa0-\xa0"+solutions[c][2]+":\xa0"+solutions[c][1]+"\n"}}t1=performance.now();a+="Time taken: "+parseInt(t1-t0)/1000+" seconds.";document.getElementById("result").textContent=a;document.getElementById("result").scrollTop=0}}function setRunningState(a){document.getElementById("startSolving").disabled=a;document.getElementById("stopSolving").disabled=!a}function updateProgressBar(){var a=document.getElementById("bar");barWidth=0;barID=setInterval(b,10);function b(){if(barWidth>95){a.style.width=100+"%";document.getElementById("progLabel").innerHTML="100%";if(barID){clearInterval(barID)}}else{a.style.width=barWidth+"%";document.getElementById("progLabel").innerHTML=parseInt(barWidth)+"%"}}}function errorHandler(a){alert("Error: "+a.message)}</script>
 <div>
-<p style=clear:both>Select language: <select id=langID onchange=readDatafile() title="Select plain text language"></select>
-<label style=margin-left:1em for=workerCount>Number of threads to use: </label>
+<p style=clear:both;margin-right:1em>Select language: <select id=langID onchange=readDatafile() title="Select plain text language"></select></p>
+<p><label for=workerCount>Number of threads to use:
 <select id=workerCount title="Selecting a greater number may increase solving speed">
-</select>
-</p>
+</select></label></p><br>
+<p><input style=pointer-events:none type=text id=warning value="No language data file loaded" name=warn size=30 readonly></p>
 </div>
-<p style=margin-left:5em;margin-top:-1em><input type=text id=warning value="No language data file loaded" name=warn size=40 readonly></p>
 <div id=input>
 <p>Enter cipher text to be deciphered:</p>
 <textarea rows=5 class=input id=cipherInput name=userText placeholder="Enter your cipher text here..." required=required title="Enter letters (A-Z) only"></textarea>
@@ -35,15 +34,20 @@
 </div>
 <div id=progressBars style=visibility:hidden>
 <p>Searching</p>
+<div id=progress>
+<div id=bar>
+<span id=progLabel>0%</span>
+</div>
+</div>
 <div class="progress-bar green stripes" id=animBar style=display:none>
 <span style=width:100%></span>
 </div>
 </div>
 <div id=output>
 <p>Best solution:</p>
-<textarea id=result rows=12 name=solution readonly></textarea>
+<textarea id=result rows=6 name=solution readonly></textarea>
 </div>
-<p>Enter maximum number of best solutions to display: <input style=width:3em id=numSols type=number min=5 max=100 step=5 value=10 title="Maximum solutions is 100"/></p>
+<label for=numSols>Maximum number of best solutions to display:</label> <input type=number style=width:3em id=numSols min=5 max=100 step=5 value=5 title="Maximum solutions is 100">
 </form>
 <script>readLangMenu();readWorkersMenu();readDatafile();</script>
 </body>
