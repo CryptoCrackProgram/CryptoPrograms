@@ -31,10 +31,14 @@
 <p>Enter cipher text to be deciphered:</p>
 <textarea rows=5 class=input id=cipherInput name=userText placeholder="Enter your cipher text here..." required=required></textarea>
 </div>
+<div>
 <p>Enter plaintext keyword (left): <input type=text id=keywdID name=keyName maxlength=26 size=26 onkeypress="return validateKeypress(event,0)" title="Enter keyword, if known"></p>
-<p style=margin-top:-1em>(if known)</p>
+<p>(if known)</p>
+</div>
+<div>
 <p>Enter ciphertext keyword (right): <input type=text id=keywdID2 name=keyName maxlength=26 size=26 onkeypress="return validateKeypress(event,0)" title="Enter keyword, if known"></p>
-<p style=margin-top:-1em>(if known)</p><br>
+<p>(if known)</p><br>
+</div>
 <div id=startStop>
 <p><input type=button id=startSolving value="Solve Cipher" onclick=startWorker()>
 <input type=button disabled id=stopSolving value="Stop Solving" onclick=stopTasks()></p>
