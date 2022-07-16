@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+<link rel=stylesheet type=text/css href=../support/cryptoPrograms.css>
+<meta charset=UTF-8>
+<meta name=description content="Solve ciphers">
+<meta name=keywords content="Playfair Cipher">
+<meta name=author content="© Phil Pilcrow 2022">
+<meta name=viewport content="width=device-width, initial-scale=1.0">
+<title>CryptoPrograms-Playfair</title>
+</head>
+<body>
+<form name=playfrForm>
+<h1>Playfair Cipher</h1>
+<script src=playfair.js></script>
+<script src=../support/decipherSetupLib.js></script>
+<script src=../support/cryptoPrograms.js async></script>
+<script src=../support/routes.js></script>
+<script>"use strict";var worker,running;var maxSol;var barID,barWidth;var workers=[];var solutions=[];var completedTrials=[];var t0,t1;function startWorker(){var c,d;if(document.getElementById("cipherInput").value===""){return}if(Number(getRadioVal(document.forms.playfrForm,"alphSz"))===5){d=cleanInput(document.getElementById("cipherInput").value,0).length}else{d=cleanInput(document.getElementById("cipherInput").value,2).length}if(d%2!==0){alert("Cipher must contain even number of letters.\n"+d.toString()+" letters found.");document.getElementById("result").innerHTML="Cipher must contain even number of letters.&#13;&#10;"+d.toString()+" letters found.";return}if(typeof(Worker)!=="undefined"){if(typeof(e)==="undefined"){t0=performance.now();document.getElementById("result").textContent="";maxSol=parseInt(document.getElementById("numSols").value);initSolution();var b=parseInt(document.getElementById("workerCount").value);var a=cleanInput(document.getElementById("keywdID").value,0);var e;if(a.length>0){if(a.indexOf(document.getElementById("missingLtr").value)>=0&&Number(getRadioVal(document.forms.playfrForm,"alphSz"))===5){document.getElementById("result").innerHTML="Keyword contains letter missing from grid.";Alert("Keyword contains letter missing from grid.");return}b=1}running=0;for(c=0;c<b;c+=1){e=initWorker("playfair.js");workers[c]=e;completedTrials[c]=0;sendSolveTask(e,c,b);running+=1}setRunningState(true)}}else{document.getElementById("result").innerHTML="Sorry, your browser does not support Web Workers.";Alert("Sorry, your browser does not support Web Workers.")}}function sendSolveTask(d,b,c){var a=[];a[1]=uInt8Array;a[2]=c;a[3]=b;a[4]=parseInt(document.getElementById("numSols").value);if(Number(getRadioVal(document.forms.playfrForm,"alphSz"))===5){a[0]=cleanInput(document.getElementById("cipherInput").value,0);a[5]=englishAlph.replace(document.getElementById("missingLtr").value,"");a[6]=cleanInput(document.getElementById("keywdID").value,0)}else{a[0]=cleanInput(document.getElementById("cipherInput").value,2);a[5]=englishAlphNum;a[6]=cleanInput(document.getElementById("keywdID").value,2)}a[7]=genRoutes(a[5].length);document.getElementById("animBar").style.display="block";document.getElementById("progressBars").style.visibility="visible";d.postMessage({cipher:a[0],uInt8Array:a[1],totalWorkers:a[2],workerNumber:a[3],numSols:a[4],alphabet:a[5],keyword:a[6],routes:a[7]})}function initWorker(a){worker=new Worker(a);worker.addEventListener("message",messageHandler,true);return worker}function stopTasks(){var a;for(a=0;a<workers.length;a+=1){workers[a].terminate()}running=0;setRunningState(false);t1=performance.now();document.getElementById("result").textContent=document.getElementById("result").textContent+"\nTotal running time: "+parseInt(t1-t0)/1000+" seconds.";document.getElementById("result").scrollTop=0;document.getElementById("progressBars").style.visibility="hidden"}function messageHandler(b){var a=b.data;switch(a.cmd){case"reslt":showSolution(a.key,a.score,a.text);break;case"STOP":running-=1;if(running===0){stopTasks();clearInterval(barID);setRunningState(false)}break}}function showSolution(b,e,d){var c;maxSol=parseInt(document.getElementById("numSols").value);if(e>solutions[maxSol-1][0]){solutions[maxSol][0]=e;solutions[maxSol][1]=d;solutions[maxSol][2]=b;solutions.sort(sortFunction);var a="";for(c=0;c<(maxSol-1);c+=1){if(solutions[c+1][0]>0){if(solutions[c][2]===solutions[c+1][2]&&solutions[c][1]===solutions[c+1][1]){solutions.splice(c+1,1);solutions.push([0,"",""])}}}for(c=0;c<maxSol;c+=1){if(solutions[c][0]>0){a+=(c+1)+"\xa0\xa0"+solutions[c][0].toString()+"\xa0-\xa0"+solutions[c][2]+":\xa0"+solutions[c][1]+"\n"}}t1=performance.now();a+="Time taken: "+parseInt(t1-t0)/1000+" seconds.";document.getElementById("result").textContent=a;document.getElementById("result").scrollTop=0}}function setRunningState(a){document.getElementById("startSolving").disabled=a;document.getElementById("stopSolving").disabled=!a}function sizeChanged(b){var a=Number(getRadioVal(document.forms[b],"alphSz"));if(a===5){document.getElementById("missingLtrLbl").style.display="inline";document.getElementById("missingLtr").style.display="inline"}else{document.getElementById("missingLtr").style.display="none";document.getElementById("missingLtrLbl").style.display="none"}}function errorHandler(a){alert("Error: "+a.message)}</script>
+<div>
+<p style=clear:both;margin-right:1em>Select language: <select id=langID onchange=readDatafile() title="Select plain text language"></select></p>
+<p><label for=workerCount>Number of threads to use:
+<select id=workerCount title="Selecting a greater number may increase solving speed">
+</select></label></p><br>
+<p><input style=pointer-events:none type=text id=warning value="No language data file loaded" name=warn size=30 readonly></p>
+</div>
+<div id=5or6>
+<p>Square size:
+<span class=no-wrap><input type=radio style=margin-left:.5em id=5x5 name=alphSz value=5 onchange=sizeChanged(this.form.name) checked><label title="Select size of grid" for=5x5>5x5</label></span>
+<span class=no-wrap><input type=radio style=margin-left:.5em id=6x6 name=alphSz value=6 onchange=sizeChanged(this.form.name)><label style=margin-right:1em title="Select size of grid" for=6x6>6x6</label></span>
+<span class=no-wrap><label id=missingLtrLbl for=missingLtr>Select missing grid letter: </label>
+<select id=missingLtr title="Select letter missing from 5x5 grid"></select></span>
+</p></div>
+<div id=input>
+<p>Enter cipher text to be deciphered:</p>
+<textarea rows=5 class=input id=cipherInput name=userText placeholder="Enter your cipher text here..." required=required title="Enter letters (A-Z) and numbers (0-9) only"></textarea>
+</div>
+<p>Enter keyword: <input type=text id=keywdID name=keyName maxlength=50 size=20></p>
+<p style=margin-top:-1em>(if known)</p><br>
+<div id=startStop>
+<p><input type=button id=startSolving value="Solve Cipher" onclick=startWorker()>
+<input type=button disabled id=stopSolving value="Stop Solving" onclick=stopTasks()></p>
+</div>
+<div id=progressBars style=visibility:hidden>
+<p>Searching</p>
+<div class="progress-bar green stripes" id=animBar style=display:none>
+<span style=width:100%></span>
+</div>
+</div>
+<div id=output>
+<p>Best solution:</p>
+<textarea id=result rows=6 name=solution readonly></textarea>
+</div>
+<label for=numSols>Maximum number of best solutions to display:</label> <input type=number style=width:3em id=numSols min=5 max=100 step=5 value=5 title="Maximum solutions is 100">
+</form>
+<script>readLangMenu();readWorkersMenu();readMissingLetterMenu();readDatafile();</script>
+</body>
+</html>

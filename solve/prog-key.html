@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+<link rel=stylesheet type=text/css href=../support/cryptoPrograms.css>
+<meta charset=UTF-8>
+<meta name=description content="Solve ciphers">
+<meta name=keywords content="Progressive Key Cipher">
+<meta name=author content="© Phil Pilcrow 2022">
+<meta name=viewport content="width=device-width, initial-scale=1.0">
+<title>CryptoPrograms-Progressive Key</title>
+</head>
+<body>
+<form name=progKeyForm>
+<h1>Progressive Key Cipher</h1>
+<script src=prog-key.js></script>
+<script src=../support/decipherSetupLib.js></script>
+<script src=../support/cryptoPrograms.js async></script>
+<script>"use strict";var worker,running;var maxSol;var maxKeysTested;var barID,barWidth;var workers=[];var solutions=[];var completedTrials=[];var index=[];var t0,t1;function startWorker(){var d;if(document.getElementById("cipherInput").value===""){return}if(typeof(Worker)!=="undefined"){if(typeof(f)==="undefined"){t0=performance.now();document.getElementById("result").textContent="";maxSol=parseInt(document.getElementById("numSols").value);initSolution();var c=parseInt(document.getElementById("workerCount").value);var e=parseInt(document.getElementById("minPerd").value);var b=parseInt(document.getElementById("maxPerd").value);var a=10;var f;if(cleanInput(document.getElementById("keywdID").value,0).length>0){c=1}else{if(c>b-e){c=b-e+1}if(e===b&&e>a){c=parseInt(document.getElementById("workerCount").value)}}running=0;for(d=0;d<c;d+=1){f=initWorker("prog-key.js");workers[d]=f;completedTrials[d]=0;sendSolveTask(f,d,c);running+=1}setRunningState(true)}}else{document.getElementById("result").innerHTML="Sorry, your browser does not support Web Workers.";Alert("Sorry, your browser does not support Web Workers.")}}function sendSolveTask(d,b,c){var a=[];a[0]=cleanInput(document.getElementById("cipherInput").value,0);a[1]=uInt8Array;a[2]=c;a[3]=b;a[4]=parseInt(document.getElementById("numSols").value);a[5]=Number(getRadioVal(document.forms.progKeyForm,"ciphTyp"));a[6]=cleanInput(document.getElementById("keywdID").value,0);a[7]=parseInt(document.getElementById("minPerd").value);a[8]=parseInt(document.getElementById("maxPerd").value);document.getElementById("animBar").style.display="block";document.getElementById("progressBars").style.visibility="visible";d.postMessage({cipher:a[0],uInt8Array:a[1],totalWorkers:a[2],workerNumber:a[3],numSols:a[4],type:a[5],keyword:a[6],minPeriod:a[7],maxPeriod:a[8]})}function initWorker(a){worker=new Worker(a);worker.addEventListener("message",messageHandler,true);return worker}function stopTasks(){var a;for(a=0;a<workers.length;a+=1){workers[a].terminate()}setRunningState(false);t1=performance.now();document.getElementById("result").textContent=document.getElementById("result").textContent+"\nTotal running time: "+parseInt(t1-t0)/1000+" seconds.";document.getElementById("result").scrollTop=0;document.getElementById("progressBars").style.visibility="hidden"}function messageHandler(b){var a=b.data;switch(a.cmd){case"reslt":showSolution(a.key,a.score,a.text);break;case"STOP":running-=1;if(running===0){stopTasks();clearInterval(barID);setRunningState(false)}break}}function showSolution(b,e,d){var c;maxSol=parseInt(document.getElementById("numSols").value);if(e>solutions[maxSol-1][0]){solutions[maxSol][0]=e;solutions[maxSol][1]=d;solutions[maxSol][2]=b;solutions.sort(sortFunction);var a="";for(c=0;c<maxSol;c+=1){if(solutions[c][0]>0){a+=(c+1)+"\xa0\xa0"+solutions[c][0].toString()+"\xa0-\xa0"+solutions[c][2]+":\xa0"+solutions[c][1]+"\n"}}t1=performance.now();a+="Time taken: "+parseInt(t1-t0)/1000+" seconds.";document.getElementById("result").textContent=a;document.getElementById("result").scrollTop=0}}function setRunningState(a){document.getElementById("startSolving").disabled=a;document.getElementById("stopSolving").disabled=!a}function errorHandler(a){alert("Error: "+a.message)}</script>
+<div>
+<p style=clear:both;margin-right:1em>Select language: <select id=langID onchange=readDatafile() title="Select plain text language"></select></p>
+<p><label for=workerCount>Number of threads to use:
+<select id=workerCount title="Selecting a greater number may increase solving speed">
+</select></label></p><br>
+<p><input style=pointer-events:none type=text id=warning value="No language data file loaded" name=warn size=30 readonly></p>
+</div>
+<div id=ciphType>
+<span class=no-wrap><input type=radio style=margin-left:1em id=showVig name=ciphTyp value=0 checked><label for=showVig>Vigenère</label></span>
+<span class=no-wrap><input type=radio style=margin-left:1em id=showBeau name=ciphTyp value=1><label for=showBeau>Beaufort</label></span>
+<span class=no-wrap><input type=radio style=margin-left:1em id=showVar name=ciphTyp value=2><label for=showVar>Variant</label></span>
+</div>
+<div>
+<p>Minimum period: <input type=number style=margin-right:1em id=minPerd min=3 max=20 value=6 onchange=periodChanged(0) title="Select minimum period (3-20)"></p>
+<p>Maximum period: <input type=number id=maxPerd min=3 max=20 value=15 onchange=periodChanged(1) title="Select maximum period (3-20)"></p><br>
+</div>
+<div id=input>
+<p>Enter cipher text to be deciphered:</p>
+<textarea rows=5 class=input id=cipherInput name=userText placeholder="Enter your cipher text here..." required=required title="Enter letters (A-Z) only"></textarea>
+</div>
+<p>Enter keyword: <input type=text id=keywdID name=keyName maxlength=50 size=20></p>
+<p style=margin-top:-1em>(if known)</p><br>
+<div id=startStop>
+<p><input type=button id=startSolving value="Solve Cipher" onclick=startWorker()>
+<input type=button disabled id=stopSolving value="Stop Solving" onclick=stopTasks()></p>
+</div>
+<div id=progressBars style=visibility:hidden>
+<p>Searching</p>
+<div class="progress-bar green stripes" id=animBar style=display:none>
+<span style=width:100%></span>
+</div>
+</div>
+<div id=output>
+<p>Best solution:</p>
+<textarea id=result rows=6 name=solution readonly></textarea>
+</div>
+<label for=numSols>Maximum number of best solutions to display:</label> <input type=number style=width:3em id=numSols min=5 max=100 step=5 value=5 title="Maximum solutions is 100">
+</form>
+<script>readLangMenu();readWorkersMenu();readDatafile();</script>
+</body>
+</html>
