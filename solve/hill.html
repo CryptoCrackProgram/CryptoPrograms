@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+<link rel=stylesheet type=text/css href=../support/cryptoPrograms.css>
+<meta charset=UTF-8>
+<meta name=description content="Solve ciphers">
+<meta name=keywords content="Hill Cipher">
+<meta name=author content="© Phil Pilcrow 2022">
+<meta name=viewport content="width=device-width, initial-scale=1.0">
+<title>CryptoPrograms-Hill</title>
+</head>
+<body>
+<form name=hillForm>
+<h1>Hill Cipher</h1>
+<script src=hill.js></script>
+<script src=../support/decipherSetupLib.js></script>
+<script src=../support/cryptoPrograms.js async></script>
+<script>var running;var maxSol;var barID,barWidth;var workers=[];var solutions=[];var completedTrials=[];var t0,t1;function startWorker(){var e,g;var d,b;if(document.getElementById("cipherInput").value===""){return}d=Number(getRadioVal(document.forms.hillForm,"matrxSz"))+2;b=cleanInput(document.getElementById("cipherInput").value,0);if((b.length%d)!=0){var j="Cipher length must be divisible by "+d+" for a "+d+"x"+d+" matrix.\nLength is "+b.length+" characters.";document.getElementById("result").innerHTML=j;alert(j);return}var a=document.getElementById("keywdID").value.trim();if(a.length>0){a=a.replace(/,*$/,"");a=a.replace(/[^0-9,.\s]/g,"");var h=a.split(/[ ,]+/);var f=d*d;if(h.length!=f){var j="ERROR: Entered keyword must contain "+f+" number groups, separated by spaces or commas.";document.getElementById("result").innerHTML=j;alert(j);return}}if(typeof(Worker)!=="undefined"){if(typeof(c)==="undefined"){t0=performance.now();document.getElementById("result").textContent="";maxSol=parseInt(document.getElementById("numSols").value);initSolution();g=1;var c;running=0;for(e=0;e<g;e+=1){c=initWorker("hill.js");workers[e]=c;completedTrials[e]=0;sendSolveTask(c);running+=1}setRunningState(true)}}else{document.getElementById("result").innerHTML="Sorry, your browser does not support Web Workers.";Alert("Sorry, your browser does not support Web Workers.")}}function sendSolveTask(b){var a=[];a[0]=cleanInput(document.getElementById("cipherInput").value,0);a[1]=uInt8Array;a[2]=parseInt(document.getElementById("numSols").value);a[3]=Number(getRadioVal(document.forms.hillForm,"matrxSz"));a[4]=document.getElementById("alphID").value;a[5]=document.getElementById("keywdID").value.trim();a[6]=singleScores;if(a[5].length>0){a[5]=a[5].replace(/,*$/,"").replace(/[^0-9,.\s]/g,"")}b.postMessage({cipher:a[0],uInt8Array:a[1],numSols:a[2],matSize:a[3],alph:a[4],keyword:a[5],singleScores:a[6]})}function initWorker(b){var a=new Worker(b);a.addEventListener("message",messageHandler,true);a.addEventListener("error",errorHandler,true);return a}function stopTasks(){var a;for(a=0;a<workers.length;a+=1){workers[a].terminate()}setRunningState(false);t1=performance.now();document.getElementById("result").textContent=document.getElementById("result").textContent+"\nTotal running time: "+parseInt(t1-t0)/1000+" seconds.";document.getElementById("result").scrollTop=0}function messageHandler(c){var b=c.data;var a=0;switch(b.cmd){case"reslt":showSolution(b.key,b.score,b.text);break;case"STOP":running-=1;if(running===0){stopTasks();clearInterval(barID);setRunningState(false)}break;default:break}}function showSolution(b,f,e){var d=parseInt(document.getElementById("numSols").value);if(f>solutions[d-1][0]){solutions[d][0]=f;solutions[d][1]=e;solutions[d][2]=b.join(",");solutions.sort(sortFunction);var a="";for(var c=0;c<d;c+=1){if(solutions[c][0]>0){a+=(c+1)+"\xa0\xa0"+solutions[c][0].toString()+"\xa0-\xa0"+solutions[c][2]+":\xa0"+solutions[c][1]+"\n"}}t1=performance.now();a+="Time taken: "+parseInt(t1-t0)/1000+" seconds.";document.getElementById("result").textContent=a;document.getElementById("result").scrollTop=0}}function setRunningState(a){document.getElementById("startSolving").disabled=a;document.getElementById("stopSolving").disabled=!a}function updateProgressBar(){var a=document.getElementById("bar");barWidth=0;barID=setInterval(b,10);function b(){if(barWidth>90){a.style.width=100+"%";document.getElementById("progLabel").innerHTML="100%";if(barID){clearInterval(barID)}}else{a.style.width=barWidth+"%";document.getElementById("progLabel").innerHTML=parseInt(barWidth)+"%"}}}function errorHandler(a){alert("Error: "+a.message+"\nLine number: "+a.lineno+"\n"+a.filename)}</script>
+<p style=clear:both>Select language: <select id=langID onchange=readDatafile() title="Select plain text language"></select></p>
+<p><input style=pointer-events:none type=text id=warning value="No language data file loaded" name=warn size=30 readonly></p>
+<div>
+<p>Select alphabet: <select id=alphID class=dropdown>
+<option selected=selected>ABCDEFGHIJKLMNOPQRSTUVWXYZ</option>
+<option>ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789</option>
+<option>ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,:;&#39;?!-"</option>
+</select></p><br>
+</div>
+<div id=ciphType>
+<p>Matrix size:
+<span class=no-wrap><input type=radio id=matrix2x2 name=matrxSz value=0 checked><label title="Select size of matrix" for=matrix2x2>2x2</label></span>
+<span class=no-wrap><input type=radio id=matrix3x3 name=matrxSz value=1><label title="Select size of matrix" for=matrix3x3>3x3</label></span></p>
+</div>
+<div id=input>
+<p>Enter cipher text to be deciphered:</p>
+<textarea rows=5 class=input id=cipherInput name=userText placeholder="Enter your cipher text here..." required=required></textarea>
+</div>
+<p>Enter keyword: <input type=text id=keywdID name=keyName maxlength=50 size=20 title="Numbers only, separated by spaces or commas"></p>
+<p style=margin-top:-1em>(if known)</p><br>
+<div id=startStop>
+<p><input type=button id=startSolving value="Solve Cipher" onclick=startWorker()>
+<input type=button disabled id=stopSolving value="Stop Solving" onclick=stopTasks()></p>
+</div>
+<div id=progressBars style=visibility:hidden>
+<p>Searching</p>
+<div class="progress-bar green stripes" id=animBar style=display:none>
+<span style=width:100%></span>
+</div>
+</div>
+<div id=output>
+<p>Best solution:</p>
+<textarea id=result rows=6 name=solution readonly></textarea>
+</div>
+<label for=numSols>Maximum number of best solutions to display:</label> <input type=number style=width:3em id=numSols min=5 max=100 step=5 value=3 title="Maximum solutions is 100">
+</form>
+<script>readLangMenu();readDatafile();readSinglesData();</script>
+</body>
+</html>
